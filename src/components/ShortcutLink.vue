@@ -1,0 +1,14 @@
+<script setup>
+import Link from './Link.vue'
+const props = defineProps(['url', 'id'])
+
+const shortcut_title = 'sc-' + props.id
+</script>
+
+<template>
+  <Link :url="props.url" :title="shortcut_title"/>
+</template>
+
+<style scoped>
+
+</style>

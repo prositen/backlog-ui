@@ -13,7 +13,7 @@ const selectedPrio = computed(() => {
     high: IconHighPrio,
     medium: IconMediumPrio,
     low: IconLowPrio
-  }[lc_value] ?? "Ej satt"
+  }[lc_value]
 });
 
 
@@ -23,19 +23,10 @@ const selectedPrio = computed(() => {
   <div :class="`prio-${lc_value} story-prio`" v-if="lc_value" :title="`Prio: ${lc_value}`">
     <component :is="selectedPrio"/>
   </div>
-  <div v-else class="story-prio">
-    Saknas
-  </div>
+  <div v-else class="story-prio" title="Prio: Saknas"></div>
 </template>
 
 <style scoped>
 
-div.story-prio svg {
-  margin: auto;
-  text-align: center;
-}
-div.story-prio {
-  font-size: x-small;
-}
 
 </style>

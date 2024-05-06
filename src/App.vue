@@ -6,6 +6,7 @@ import Backlog from './components/Backlog.vue';
   <main>
     <Backlog/>
   </main>
+
 </template>
 
 <style scoped>

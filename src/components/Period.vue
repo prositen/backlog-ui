@@ -10,26 +10,20 @@ const selectedPeriod = computed(() => {
     "P3 2024": "P3/2024",
     "Kanske nästa period": "Nästa?",
     "Kanske efter nästa period": "Efter nästa??",
-  }[props.value] ?? "Saknas"
+  }[props.value] ?? ""
 });
 
 </script>
 
 <template>
-  <div class="story-period" :title="`Period: ${value}`">
+  <div v-if="value" class="story-period" :title="`Period: ${selectedPeriod}`">
     <span> {{ selectedPeriod }}</span>
   </div>
+  <div v-else title="Period: Saknas"></div>
 
 </template>
 
 <style scoped>
-div.story-period {
-  display: inline-block;
-  font-size: x-small;
-}
 
-.period-container span {
-  border: 1px solid grey;
-  padding: 2px;
-}
+
 </style>
