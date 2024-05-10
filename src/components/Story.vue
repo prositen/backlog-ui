@@ -15,8 +15,8 @@ defineProps(['story'])
   <span class="story-meta">{{ story.created.split('T')[0] }}</span>
   <span class="story-meta">{{ story.updated.split('T')[0] }}</span>
   <div class="story-description">
-    <div class="story-title">{{ story.name }}</div>
-    <!-- <span v-for="label in story.label_names">{{ label }}</span> -->
+    <div class="story-title" >{{ story.name }}</div>
+    <span class="story-label" v-for="label in story.labels">{{ label }}</span>
     <div class="story-content">
       <Markdown :value="story.description.slice(0, 200)"/>
     </div>
@@ -57,5 +57,9 @@ div.story-title {
 
 .story-content {
   display: none;
+}
+
+.story-label {
+  font-size: x-small;
 }
 </style>

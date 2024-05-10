@@ -2,45 +2,78 @@
 import axios from 'axios';
 import Story from "@/components/Story.vue";
 import {onMounted, ref} from "vue";
+/*
+  TODO: Load backlog once and store in browser. Sort and filter on local data.
+ */
+const props = defineProps(['filterBy', 'filterValue'])
+const sort_by = ref({
+  'id': null,
+  'created': null,
+  'updated': null,
+  'name': null,
+  'priority': null,
+  'period': null
+});
 
-let page = 1;
-let page_size = 10;
-let sort_by = '';
+const filter_by = ref({
+  'label': null,
+  'priority': null,
+  'period': null
+})
+
+if (props.filterBy) {
+  filter_by.value[props.filterBy] = props.filterValue;
+}
 
 const data = ref({
   stories: [],
-  page: 0,
-  total_pages: 0
+  count: 0,
+  total: 0
 });
 
-async function getBacklog(page) {
-  let url = '/shortcut/backlog?page=' + page + '&size=' + page_size;
-  if (sort_by) {
-    url += `&order_by=${sort_by}`
+async function getBacklog() {
+  let url = '/shortcut/backlog?';
+  for (const [key, value] of Object.entries(sort_by.value)) {
+    if (value) {
+      url += `&sort[${key}]=${value}`
+    }
+  }
+  for (const [key, value] of Object.entries(filter_by.value)) {
+    if (value) {
+      url += `&filter[${key}]=${value}`
+    }
   }
   await axios.get(url)
       .then((response) => {
         data.value.stories = response.data.items;
-        data.value.page = response.data.page;
-        data.value.total_pages = response.data.pages;
+        data.value.count = response.data.count;
+        data.value.total = response.data.total;
       })
       .catch((error) => {
         console.log(error);
       })
 }
 
-async function sortBy(sort_value) {
-  sort_by = sort_value;
-  await getBacklog(page);
-}
-
-async function paginate(pageno) {
-  page = pageno;
-  await getBacklog(page);
+async function sortBy(sort_column) {
+  const prev_sort = sort_by.value[sort_column]
+  let next_sort = null;
+  switch (prev_sort) {
+    case null:
+      next_sort = 'forward';
+      break;
+    case 'forward':
+      next_sort = 'reverse';
+      break
+    case 'reverse':
+      next_sort = null;
+      break
+  }
+  sort_by.value[sort_column] = next_sort;
+  await getBacklog();
 }
 
 onMounted(async () => {
-  await getBacklog(1)
+  await getBacklog()
 })
 
 </script>
@@ -48,12 +81,12 @@ onMounted(async () => {
 <template>
   <div class="backlog-container">
     <nav>
-      <div class="story-prio header">Prio</div>
-      <div class="story-period header">Period</div>
-      <div v-on:click="sortBy('created')" class="story-created header">Skapad</div>
-      <div v-on:click="sortBy('updated')" class="story-updated header">Ändrad</div>
-      <div v-on:click="sortBy('name')" class="story-description header">Story</div>
-      <div v-on:click="sortBy('id')" class="story-id header">ID</div>
+      <div class="story-prio header"><a v-on:click="sortBy('priority')">Prio</a></div>
+      <div class="story-period header"><a v-on:click="sortBy('period')">Period</a></div>
+      <div class="story-created header"><a v-on:click="sortBy('created')">Skapad</a></div>
+      <div class="story-updated header"><a v-on:click="sortBy('updated')">Ändrad</a></div>
+      <div class="story-description header"><a v-on:click="sortBy('name')">Story</a></div>
+      <div class="story-id header"><a v-on:click="sortBy('id')">ID</a></div>
       <hr>
     </nav>
 
@@ -65,26 +98,9 @@ onMounted(async () => {
       />
       <hr>
     </section>
-
     <footer>
-
-      <div class="story-pagination">
-
-        <a v-for="pageNo in data.total_pages"
-           v-on:click="paginate(pageNo)" class="nav-page"
-           :class="{'active': pageNo === page}">
-          <span>{{ pageNo }}</span>
-        </a>
-        </div>
-      <div class="story-page-no">
-        <br>
-        Sida {{ data.page }} av {{ data.total_pages }}
-
-        <br/>
-        <input v-model="page_size" v-on:change="getBacklog(page)" type="number"/> per sida
-      </div>
+      <div>{{ data.count }} av {{ data.total }} stories visas.</div>
     </footer>
-
   </div>
 
 </template>
@@ -101,6 +117,9 @@ div.backlog-container {
   grid-template-areas: "header" "section" "footer";
 }
 
+div.backlog-container h2 {
+  grid-column: start / end;
+}
 nav {
   font-weight: bold;
   grid-area: header;
@@ -112,8 +131,12 @@ nav {
   position: sticky;
 }
 
-nav div, footer div {
+nav div, footer div, nav div a {
   font-weight: bold;
+}
+
+nav div a {
+  cursor: pointer;
 }
 
 hr {
@@ -149,17 +172,11 @@ footer a {
   cursor: pointer;
 }
 
-footer a.active {
-  color: red;
-}
-
-.story-pagination {
+footer div {
   grid-column: start / story;
 }
 
-.story-page-no {
-  grid-column: story-end / end;
-}
+
 
 
 </style>
