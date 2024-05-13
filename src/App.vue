@@ -19,6 +19,7 @@ onMounted(() => {
 
     <nav>
       <Tabs>
+        <Tab groupIndex=0 groupTitle="Alla" title="Alla"><Backlog /></Tab>
         <Tab groupIndex=1 groupTitle="Period"
              v-for="period in store.periods" :title="`${period ?? 'Ej satt'}`">
           <Backlog filter-by="period" :filter-value="period"/>

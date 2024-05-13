@@ -26,6 +26,12 @@ function comparePeriod(a, b) {
     }
 }
 
+const prioMap = {
+    'High': 1,
+    'Medium': 2,
+    'Low': 3,
+    null: 4
+}
 export const useBacklogStore = defineStore('backlog', {
     state: () => {
         return {
@@ -58,7 +64,9 @@ export const useBacklogStore = defineStore('backlog', {
                     this.count = response.data.count;
                     this.total = response.data.total;
 
-                    this.prios = [...new Set(this.stories.map(item => item.priority))].sort();
+                    this.prios = [...new Set(this.stories.map(item => item.priority))].sort((a, b) => {
+                        return prioMap[a] > prioMap[b];
+                    });
                     this.periods = [...new Set(this.stories.map(item => item.period))].sort((a, b) => {
                         return comparePeriod(a, b);
                     })

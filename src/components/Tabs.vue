@@ -52,10 +52,14 @@ div.tabs nav {
 }
 
 div.tabs nav ul {
-  list-style: disc;
+  list-style: none;
   white-space: nowrap;
+  font-weight: bold;
 }
 
+div.tabs nav ul li {
+  margin-left: 1rem;
+}
 div.tabs nav ul li a {
   cursor: pointer;
 }

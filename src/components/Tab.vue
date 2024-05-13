@@ -4,7 +4,15 @@ import {inject} from "vue";
 
 const addTab = inject("addTab");
 const activeTabHash = inject("activeTabHash");
-const props = defineProps(["title", "groupIndex", "groupTitle"]);
+const props = defineProps({
+  "title": {},
+  "groupIndex": {
+    default: 1
+  },
+  "groupTitle": {
+    default: ""
+  }
+});
 const hash = ref("");
 const isActive = ref(false);
 
@@ -14,7 +22,7 @@ onBeforeMount(() => {
   hash.value = `#${(props.groupTitle.toLowerCase()+props.title.toLowerCase()).replace(/ /g, "-")}`;
 
   addTab({
-    groupIndex: props.groupIndex ?? 1,
+    groupIndex: props.groupIndex,
     groupTitle: props.groupTitle,
     title: props.title,
     hash: hash.value,
