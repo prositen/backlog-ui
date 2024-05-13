@@ -1,10 +1,8 @@
 <script setup>
-import axios from 'axios';
 import Story from "@/components/Story.vue";
-import {onMounted, ref} from "vue";
-/*
-  TODO: Load backlog once and store in browser. Sort and filter on local data.
- */
+import {computed, onMounted, ref} from "vue";
+import {useBacklogStore} from "@/store/backlog.js";
+
 const props = defineProps(['filterBy', 'filterValue'])
 const sort_by = ref({
   'id': null,
@@ -15,84 +13,107 @@ const sort_by = ref({
   'period': null
 });
 
-const filter_by = ref({
-  'label': null,
-  'priority': null,
-  'period': null
-})
-
-if (props.filterBy) {
-  filter_by.value[props.filterBy] = props.filterValue;
+function filter_fun(key, value) {
+  switch (key) {
+    case 'label':
+      return function (item) {
+        if ([null, 'null'].includes(value)) {
+          return item.labels.length === 0;
+        }
+        return item.labels.includes(value);
+      };
+    case 'priority':
+      return function (item) {
+        return item.priority === value;
+      }
+    case 'period':
+      return function (item) {
+        return item.period === value;
+      }
+    default:
+      return function (item) {
+        return true;
+      }
+  }
 }
 
 const data = ref({
   stories: [],
   count: 0,
-  total: 0
-});
+  total: 0,
+})
 
-async function getBacklog() {
-  let url = '/shortcut/backlog?';
+const store = useBacklogStore();
+
+onMounted(() => {
+  data.value.stories = store.getStories.filter(item => filter_fun(props.filterBy, props.filterValue)(item));
+  data.value.total = store.getStoryTotal;
+  data.value.count = data.value.stories.length;
+})
+
+// TODO: Sort on multiple
+const sortedStories = computed(() => {
+  let to_sort = [...data.value.stories]
   for (const [key, value] of Object.entries(sort_by.value)) {
+    let gt = -1;
+    let lt = 1;
+    if (value === "forward") {
+      gt = 1;
+      lt = -1;
+    }
     if (value) {
-      url += `&sort[${key}]=${value}`
+      to_sort.sort((a, b) => {
+        return a[key] > b[key] ? gt : lt
+      })
     }
   }
-  for (const [key, value] of Object.entries(filter_by.value)) {
-    if (value) {
-      url += `&filter[${key}]=${value}`
-    }
-  }
-  await axios.get(url)
-      .then((response) => {
-        data.value.stories = response.data.items;
-        data.value.count = response.data.count;
-        data.value.total = response.data.total;
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-}
+  return to_sort
+})
 
 async function sortBy(sort_column) {
   const prev_sort = sort_by.value[sort_column]
   let next_sort = null;
   switch (prev_sort) {
-    case null:
-      next_sort = 'forward';
-      break;
     case 'forward':
       next_sort = 'reverse';
       break
     case 'reverse':
       next_sort = null;
-      break
+      break;
+    case null:
+      next_sort = 'forward';
+      break;
   }
   sort_by.value[sort_column] = next_sort;
-  await getBacklog();
 }
 
-onMounted(async () => {
-  await getBacklog()
-})
+const translateHeader = {
+  'prio': 'Prio',
+  'period': 'Period',
+  'created': 'Skapad',
+  'updated': 'Ändrad',
+  'name': 'Namn',
+  'id': 'ID'
+}
 
 </script>
 
 <template>
   <div class="backlog-container">
+    <h2 v-if="filterBy">{{ filterBy[0].toUpperCase() + filterBy.slice(1) }}: <em>{{ filterValue ?? "Ej satt" }}</em>
+    </h2>
     <nav>
-      <div class="story-prio header"><a v-on:click="sortBy('priority')">Prio</a></div>
-      <div class="story-period header"><a v-on:click="sortBy('period')">Period</a></div>
-      <div class="story-created header"><a v-on:click="sortBy('created')">Skapad</a></div>
-      <div class="story-updated header"><a v-on:click="sortBy('updated')">Ändrad</a></div>
-      <div class="story-description header"><a v-on:click="sortBy('name')">Story</a></div>
-      <div class="story-id header"><a v-on:click="sortBy('id')">ID</a></div>
+      <div v-for="(se, en) in translateHeader"
+        :class="`story-${en} header`">
+        <a :class="sort_by[en]" v-on:click="sortBy(en)">{{se}}</a>
+      </div>
+
       <hr>
     </nav>
 
     <section>
       <Story
-          v-for="story in data.stories"
+          v-for="story in sortedStories"
           :story="story"
           :key="story.id"
       />
@@ -109,22 +130,25 @@ onMounted(async () => {
 
 
 div.backlog-container {
-  height: 100vh;
+  max-height: 100vh;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  grid-template-columns: [start prio] min-content [period] min-content [created] min-content [updated] min-content [story story-start] 1fr [story-end extra] auto [end];
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-columns: [start prio] auto [period] auto [created] auto  [updated] auto [story story-start] 1fr [story-end extra] auto [end];
   column-gap: 1rem;
-  grid-template-areas: "header" "section" "footer";
+  grid-template-areas: "header" "nav" "section" "footer";
 }
 
 div.backlog-container h2 {
+  grid-row: header;
   grid-column: start / end;
 }
+
 nav {
   font-weight: bold;
   grid-area: header;
   display: grid;
   grid-template-columns: subgrid;
+  grid-row: nav;
   grid-column: start / end;
   height: auto;
   top: 0;
@@ -137,6 +161,18 @@ nav div, footer div, nav div a {
 
 nav div a {
   cursor: pointer;
+}
+
+
+
+nav div a.forward:after {
+  content: url("/SortAscending.svg");
+  position: absolute;
+}
+
+nav div a.reverse:after {
+  content: url("/SortDescending.svg");
+  position: absolute;
 }
 
 hr {
@@ -175,8 +211,6 @@ footer a {
 footer div {
   grid-column: start / story;
 }
-
-
 
 
 </style>

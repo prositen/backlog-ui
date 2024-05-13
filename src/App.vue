@@ -2,23 +2,38 @@
 import Backlog from './components/Backlog.vue';
 import Tabs from "@/components/Tabs.vue";
 import Tab from "@/components/Tab.vue";
+import {onMounted} from "vue";
+import {useBacklogStore} from "@/store/backlog.js";
+
+const store = useBacklogStore();
+
+onMounted(() => {
+  store.fetchBacklog();
+})
+
+
 </script>
 
 <template>
   <main>
 
-    <Tabs>
-      <Tab title="P1 2024"><Backlog filter-by="period" filter-value="P1 2024"/></Tab>
-      <Tab title="P2 2024"><Backlog filter-by="period" filter-value="P2 2024"/></Tab>
-      <Tab title="Kanske nästa period"><Backlog filter-by="period" filter-value="Kanske nästa period"/></Tab>
-      <Tab title="Kanske efter nästa period"><Backlog filter-by="period" filter-value="Kanske efter nästa period"/></Tab>
-      <Tab title="Period ej satt"><Backlog filter-by="period" filter-value="null"/></Tab>
-      <Tab title="PO/BO: Att prioritera"><Backlog filter-by="label" filter-value="PO/BO: Att prioritera"/></Tab>
-      <Tab title="PO/BO: Önskemål"><Backlog filter-by="label" filter-value="PO/BO: Önskemål"/></Tab>
-      <Tab title="Hög prio"><Backlog filter-by="priority" filter-value="High"/></Tab>
-      <Tab title="Medium prio"><Backlog filter-by="priority" filter-value="Medium"/></Tab>
-      <Tab title="Låg prio"><Backlog filter-by="priority" filter-value="Low"/></Tab>
-    </Tabs>
+    <nav>
+      <Tabs>
+        <Tab groupIndex=1 groupTitle="Period"
+             v-for="period in store.periods" :title="`${period ?? 'Ej satt'}`">
+          <Backlog filter-by="period" :filter-value="period"/>
+        </Tab>
+        <Tab groupIndex=2 groupTitle="Prio"
+             v-for="prio in store.prios" :title="`${prio ?? 'Ej satt'}`">
+          <Backlog filter-by="priority" :filter-value="prio"/>
+        </Tab>
+        <Tab groupIndex=3 groupTitle="Label"
+             v-for="label in store.labels" :title="`${label ?? 'Ej satt'}`">
+          <Backlog filter-by="label" :filter-value="label"/>
+        </Tab>
+
+      </Tabs>
+    </nav>
   </main>
 
 </template>
@@ -26,6 +41,10 @@ import Tab from "@/components/Tab.vue";
 <style scoped>
 header {
   line-height: 1.5;
+}
+
+main nav h2 {
+  font-size: 2rem;
 }
 
 </style>

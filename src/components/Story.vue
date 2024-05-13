@@ -61,5 +61,6 @@ div.story-title {
 
 .story-label {
   font-size: x-small;
+  padding: 0.5rem;
 }
 </style>
