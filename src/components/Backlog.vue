@@ -1,94 +1,106 @@
 <script setup>
 import Story from "@/components/Story.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, ref, toValue, unref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 
-const props = defineProps(['filterBy', 'filterValue'])
 const sort_by = ref({
-  'id': null,
-  'created': null,
-  'updated': null,
-  'name': null,
-  'priority': null,
-  'period': null
+  'id': 0,
+  'created': 0,
+  'updated': 0,
+  'name': 0,
+  'priority': 0,
+  'period': 0
 });
 
-function filter_fun(key, value) {
-  switch (key) {
-    case 'label':
-      return function (item) {
-        if ([null, 'null'].includes(value)) {
-          return item.labels.length === 0;
-        }
-        return item.labels.includes(value);
-      };
-    case 'priority':
-      return function (item) {
-        return item.priority === value;
-      }
-    case 'period':
-      return function (item) {
-        return item.period === value;
-      }
-    default:
-      return function (item) {
-        return true;
-      }
+const sort_order = ref([]);
+
+function filter_label(item, value) {
+  if (value === "all") {
+    return true;
+  } else if ([null, 'null'].includes(value)) {
+    return item.labels.length === 0;
+  } else {
+    return item.labels.includes(value);
   }
 }
 
-const data = ref({
-  stories: [],
-  count: 0,
-  total: 0,
-})
+function filter_prio(item, value) {
+  if (value === 'all') {
+    return true;
+  } else {
+    return item.priority === value;
+  }
+}
+
+function filter_period(item, value) {
+  if (value === 'all') {
+    return true;
+  } else {
+    return item.period === value;
+  }
+}
+
+function sort_by_str(field, a, b) {
+  return a[field].localeCompare(b[field], 'se') * toValue(sort_by)[field];
+}
+
+function sort_by_date(field, a, b) {
+  const da = Date.parse(a[field]);
+  const db = Date.parse(b[field]);
+  let cmp = 0;
+  if (da < db) {
+    cmp = -1;
+  } else if (da > db) {
+    cmp = 1
+  }
+  return cmp * toValue(sort_by)[field];
+}
+
+function sort_stories(items) {
+  for (let column of sort_order.value) {
+    switch (column) {
+      case 'name':
+        items.sort((a, b) => sort_by_str(column, a, b));
+        break;
+      case 'updated':
+      case 'created':
+        items.sort((a, b) => sort_by_date(column, a, b))
+        break;
+      case 'priority':
+        items.sort((a, b) => store.comparePrio(a.priority, b.priority, sort_by.value[column]));
+        break;
+      case 'period':
+        items.sort((a, b) => store.comparePeriod(a.period, b.period, sort_by.value[column]));
+    }
+  }
+  return items;
+}
 
 const store = useBacklogStore();
 
-onMounted(() => {
-  data.value.stories = store.getStories.filter(item => filter_fun(props.filterBy, props.filterValue)(item));
-  data.value.total = store.getStoryTotal;
-  data.value.count = data.value.stories.length;
-})
-
-// TODO: Sort on multiple
-const sortedStories = computed(() => {
-  let to_sort = [...data.value.stories]
-  for (const [key, value] of Object.entries(sort_by.value)) {
-    let gt = -1;
-    let lt = 1;
-    if (value === "forward") {
-      gt = 1;
-      lt = -1;
-    }
-    if (value) {
-      to_sort.sort((a, b) => {
-        return a[key] > b[key] ? gt : lt
-      })
-    }
-  }
-  return to_sort
+const stories = computed(() => {
+  return sort_stories(store.getStories
+      .filter(item => filter_period(item, unref(filterPeriod)))
+      .filter(item => filter_prio(item, unref(filterPrio)))
+      .filter(item => filter_label(item, unref(filterLabel))))
 })
 
 async function sortBy(sort_column) {
-  const prev_sort = sort_by.value[sort_column]
-  let next_sort = null;
-  switch (prev_sort) {
-    case 'forward':
-      next_sort = 'reverse';
-      break
-    case 'reverse':
-      next_sort = null;
-      break;
-    case null:
-      next_sort = 'forward';
-      break;
+  const prev_sort = sort_by.value[sort_column];
+  const new_sort = ((prev_sort + 2) % 3) - 1;
+  const so = sort_order.value.indexOf(sort_column);
+  if (so > -1) {
+    sort_order.value.splice(so, 1);
   }
-  sort_by.value[sort_column] = next_sort;
+
+  sort_by.value[sort_column] = new_sort;
+  if (new_sort !== 0) {
+    sort_order.value.push(sort_column);
+  }
 }
 
 const translateHeader = {
-  'prio': 'Prio',
+  'priority': 'Prio',
   'period': 'Period',
   'created': 'Skapad',
   'updated': 'Ändrad',
@@ -96,40 +108,105 @@ const translateHeader = {
   'id': 'ID'
 }
 
+const filterPeriod = ref('all');
+const filterPrio = ref('all');
+const filterLabel = ref('all');
 </script>
 
 <template>
   <div class="backlog-container">
-    <h2 v-if="filterBy">{{ filterBy[0].toUpperCase() + filterBy.slice(1) }}: <em>{{ filterValue ?? "Ej satt" }}</em>
-    </h2>
-    <nav>
-      <div v-for="(se, en) in translateHeader"
-        :class="`story-${en} header`">
-        <a :class="sort_by[en]" v-on:click="sortBy(en)">{{se}}</a>
-      </div>
+    <nav class="filter-container">
+      <ul>
+        <li>
+          <ul>Period
+            <li><input type="radio" id="period-all" value="all" v-model="filterPeriod"/>
+              <label for="period-all">Alla</label></li>
+            <li v-for="period in store.periods">
+              <input type="radio" :value="period" :id="period ?? 'period-none'" v-model="filterPeriod"/>
+              <label :for="period ?? 'period-none'">{{ period ?? 'Ej satt' }}</label></li>
+          </ul>
+          <ul>Prio
+            <li><input type="radio" id="prio-all" value="all" v-model="filterPrio"/>
+              <label for="prio-all">Alla</label></li>
+            <li v-for="prio in store.prios">
+              <input type="radio" :value="prio" :id="prio ?? 'prio-none'" v-model="filterPrio"/>
+              <label :for="prio ?? 'prio-none'">{{ prio ?? 'Ej satt' }}</label></li>
+          </ul>
+          <ul>Label
+            <li><input type="radio" id="label-all" value="all" v-model="filterLabel"/>
+              <label for="label-all">Alla</label></li>
+            <li v-for="label in store.labels">
+              <input type="radio" :value="label" :id="label ?? 'label-none'" v-model="filterLabel"/>
+              <label :for="label ?? 'label-none'">{{ label ?? 'Ej satt' }}</label></li>
+          </ul>
+        </li>
 
-      <hr>
+      </ul>
     </nav>
+    <div class="stories-container">
+      <nav>
+        <div v-for="(se, en) in translateHeader"
+             :class="`story-${en} header`">
+          <a :class="`sort-${sort_by[en]}`" v-on:click="sortBy(en)">{{ se }}</a>
+        </div>
 
-    <section>
-      <Story
-          v-for="story in sortedStories"
-          :story="story"
-          :key="story.id"
-      />
-      <hr>
-    </section>
-    <footer>
-      <div>{{ data.count }} av {{ data.total }} stories visas.</div>
-    </footer>
+        <hr>
+      </nav>
+      <section>
+        <Story
+            v-for="story in stories"
+            :story="story"
+            :key="story.id"
+        />
+        <hr>
+      </section>
+      <footer>
+        <div>{{ stories.length }} av {{ store.getStoryTotal }} stories visas.</div>
+      </footer>
+    </div>
   </div>
 
 </template>
 
 <style scoped>
 
-
 div.backlog-container {
+  display: grid;
+  grid-template-columns: [nav] auto [backlog] 1fr [end];
+
+  column-gap: 1rem;
+  grid-template-areas: "tabs backlog";
+}
+
+div.backlog-container nav {
+  grid-column: nav;
+}
+
+div.backlog-container nav ul {
+  list-style: none;
+  white-space: nowrap;
+  font-weight: bold;
+  padding-left: 0;
+}
+
+div.backlog-container nav ul li {
+  margin-left: 1rem;
+}
+
+div.backlog-container nav ul li a {
+  cursor: pointer;
+}
+
+div.backlog-container nav ul li.tab__selected a {
+  cursor: default;
+  color: grey;
+}
+
+div.stories-container {
+  grid-area: backlog;
+}
+
+div.stories-container {
   max-height: 100vh;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
@@ -138,12 +215,12 @@ div.backlog-container {
   grid-template-areas: "header" "nav" "section" "footer";
 }
 
-div.backlog-container h2 {
+div.stories-container h2 {
   grid-row: header;
   grid-column: start / end;
 }
 
-nav {
+div.stories-container nav {
   font-weight: bold;
   grid-area: header;
   display: grid;
@@ -164,13 +241,12 @@ nav div a {
 }
 
 
-
-nav div a.forward:after {
+nav div a.sort-1:after {
   content: url("/SortAscending.svg");
   position: absolute;
 }
 
-nav div a.reverse:after {
+nav div a.sort--1:after {
   content: url("/SortDescending.svg");
   position: absolute;
 }
