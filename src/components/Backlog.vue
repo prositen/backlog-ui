@@ -2,7 +2,10 @@
 import Story from "@/components/Story.vue";
 import {computed, ref, toValue, unref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
+import {usePersonStore} from "@/store/persons.js";
 
+const blStore = useBacklogStore();
+const pStore = usePersonStore();
 const sort_by = ref({
   'id': 0,
   'created': 0,
@@ -15,7 +18,7 @@ const sort_by = ref({
 const sort_order = ref([]);
 
 function filter_label(item, value) {
-  if (value === "all") {
+  if (value === 'all') {
     return true;
   } else if ([null, 'null'].includes(value)) {
     return item.labels.length === 0;
@@ -28,6 +31,9 @@ function filter_prio(item, value) {
   if (value === 'all') {
     return true;
   } else {
+    if (value === 'null') {
+      value = null;
+    }
     return item.priority === value;
   }
 }
@@ -36,7 +42,20 @@ function filter_period(item, value) {
   if (value === 'all') {
     return true;
   } else {
+    if (value === 'null') {
+      value = null;
+    }
     return item.period === value;
+  }
+}
+
+function filter_person(item, value) {
+  if (value === 'all') {
+    return true;
+  } else if ([null, 'null'].includes(value)) {
+    return item.persons.length === 0;
+  } else {
+    return item.persons.map(a => a.id).includes(value);
   }
 }
 
@@ -67,22 +86,21 @@ function sort_stories(items) {
         items.sort((a, b) => sort_by_date(column, a, b))
         break;
       case 'priority':
-        items.sort((a, b) => store.comparePrio(a.priority, b.priority, sort_by.value[column]));
+        items.sort((a, b) => blStore.comparePrio(a.priority, b.priority, sort_by.value[column]));
         break;
       case 'period':
-        items.sort((a, b) => store.comparePeriod(a.period, b.period, sort_by.value[column]));
+        items.sort((a, b) => blStore.comparePeriod(a.period, b.period, sort_by.value[column]));
     }
   }
   return items;
 }
 
-const store = useBacklogStore();
-
 const stories = computed(() => {
-  return sort_stories(store.getStories
+  return sort_stories(blStore.stories
       .filter(item => filter_period(item, unref(filterPeriod)))
       .filter(item => filter_prio(item, unref(filterPrio)))
       .filter(item => filter_label(item, unref(filterLabel))))
+      .filter(item => filter_person(item, unref(filterPerson)))
 })
 
 async function sortBy(sort_column) {
@@ -111,37 +129,69 @@ const translateHeader = {
 const filterPeriod = ref('all');
 const filterPrio = ref('all');
 const filterLabel = ref('all');
+const filterPerson = ref('all');
+
 </script>
 
 <template>
   <div class="backlog-container">
     <nav class="filter-container">
-      <ul>
-        <li>
-          <ul>Period
-            <li><input type="radio" id="period-all" value="all" v-model="filterPeriod"/>
-              <label for="period-all">Alla</label></li>
-            <li v-for="period in store.periods">
-              <input type="radio" :value="period" :id="period ?? 'period-none'" v-model="filterPeriod"/>
-              <label :for="period ?? 'period-none'">{{ period ?? 'Ej satt' }}</label></li>
-          </ul>
-          <ul>Prio
-            <li><input type="radio" id="prio-all" value="all" v-model="filterPrio"/>
-              <label for="prio-all">Alla</label></li>
-            <li v-for="prio in store.prios">
-              <input type="radio" :value="prio" :id="prio ?? 'prio-none'" v-model="filterPrio"/>
-              <label :for="prio ?? 'prio-none'">{{ prio ?? 'Ej satt' }}</label></li>
-          </ul>
-          <ul>Label
-            <li><input type="radio" id="label-all" value="all" v-model="filterLabel"/>
-              <label for="label-all">Alla</label></li>
-            <li v-for="label in store.labels">
-              <input type="radio" :value="label" :id="label ?? 'label-none'" v-model="filterLabel"/>
-              <label :for="label ?? 'label-none'">{{ label ?? 'Ej satt' }}</label></li>
-          </ul>
-        </li>
+      Period:
+      <el-select v-model="filterPeriod" placeholder="Välj period">
+        <el-option
+            key="period-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="period in blStore.periods"
+            :key="period ?? 'period-none'"
+            :label="period ?? 'Ej satt'"
+            :value="period ?? 'null'"/>
+      </el-select>
 
-      </ul>
+      Prioritet:
+      <el-select v-model="filterPrio" placeholder="Välj prio">
+        <el-option
+            key="prio-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="prio in blStore.prios"
+            :key="prio ?? 'prio-none'"
+            :label="prio ?? 'Ej satt'"
+            :value="prio ?? 'null'"/>
+      </el-select>
+
+      Label:
+      <el-select v-model="filterLabel" placeholder="Välj label">
+        <el-option
+            key="label-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="label in blStore.labels"
+            :key="label ?? 'label-none'"
+            :label="label ?? 'Ej satt'"
+            :value="label ?? 'null'"
+        />
+      </el-select>
+      Person:
+      <el-select v-model="filterPerson" placeholder="Välj person" >
+        <el-option
+            key="person-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="person of pStore.persons"
+            :key="person.id"
+            :label="person.name"
+            :value="person.id"/>
+        <el-option
+            key="person-none"
+            label="Ej satt"
+            value="null"/>
+      </el-select>
+
     </nav>
     <div class="stories-container">
       <nav>
@@ -153,15 +203,17 @@ const filterLabel = ref('all');
         <hr>
       </nav>
       <section>
+
         <Story
             v-for="story in stories"
             :story="story"
             :key="story.id"
         />
+
         <hr>
       </section>
       <footer>
-        <div>{{ stories.length }} av {{ store.getStoryTotal }} stories visas.</div>
+        <div>{{ stories.length }} av {{ blStore.total }} stories visas.</div>
       </footer>
     </div>
   </div>
@@ -220,6 +272,12 @@ div.stories-container h2 {
   grid-column: start / end;
 }
 
+div.stories-container div.el-collapse {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: start / end;
+}
+
 div.stories-container nav {
   font-weight: bold;
   grid-area: header;
@@ -241,12 +299,12 @@ nav div a {
 }
 
 
-nav div a.sort-1:after {
+nav div a.sort--1:after {
   content: url("/SortAscending.svg");
   position: absolute;
 }
 
-nav div a.sort--1:after {
+nav div a.sort-1:after {
   content: url("/SortDescending.svg");
   position: absolute;
 }

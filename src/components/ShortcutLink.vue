@@ -6,7 +6,7 @@ const shortcut_title = 'sc-' + props.id
 </script>
 
 <template>
-  <Link :url="props.url" :title="shortcut_title"/>
+  <Link :url="props.url" :title="props.url" :text="shortcut_title"/>
 </template>
 
 <style scoped>

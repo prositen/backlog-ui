@@ -4,12 +4,12 @@ import {computed} from "vue";
 
 const props = defineProps({
   value: {},
-  length: {default: 200}
+  length: {default: 0}
 })
 
 const markdown = new MarkdownIt();
 const short_value = computed(() => {
-  if (props.value.length >= props.length) {
+  if (props.length && props.value.length >= props.length) {
     return props.value.slice(0, props.length).trimEnd() + '...';
   }
   return props.value;
