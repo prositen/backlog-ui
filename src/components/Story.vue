@@ -18,6 +18,7 @@ const addPerson = ref();
 
 async function addPersonToStory(story_id, person_id) {
   await blStore.addPersonToStory(story_id, person_id);
+  addPerson.value = '';
   addPersonVisible.value = false;
 }
 </script>
@@ -45,8 +46,11 @@ async function addPersonToStory(story_id, person_id) {
         </div>
         <hr>
 
+        <div class="story-meta">Prioritet: {{ story.priority ?? "Ej satt" }}</div>
+        <div class="story-meta">Periodsplanering: {{ story.period ?? "Ej satt" }}</div>
+
         <div class="story-meta" v-if="story.labels.length">Labels:
-          <el-tag type="primary" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
+          <el-tag type="info" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
               label
             }}
           </el-tag>
@@ -64,6 +68,7 @@ async function addPersonToStory(story_id, person_id) {
                        v-model="addPerson"
                        class="w-20"
                        size="small"
+                       style="width: 400px;"
                        @clear="addPersonVisible=false">
               <el-option
                   v-for="person of pStore.persons"
@@ -115,6 +120,7 @@ div.story-title .el-icon {
 
 .story-meta {
   font-size: small;
+  margin-top: 0.5rem;
 }
 
 .story-prio {

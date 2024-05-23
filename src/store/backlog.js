@@ -85,20 +85,22 @@ export const useBacklogStore = defineStore('backlog', () => {
                     loading.value = false;
                     fetchBacklog()
                 }
-            );
+            ).catch((error) => {
+                loading.value = false;
+                message.value = error;
+            });
+
     }
 
     async function fetchBacklog() {
         let url = '/shortcut/backlog';
-        loading.value = true;
         await axios.get(url)
             .then((response) => {
                 storiesMap.value = new Map(response.data.items.map(obj => [obj.id, obj]));
                 total.value = response.data.total;
-                loading.value = false;
             })
             .catch((error) => {
-                console.log(error);
+                message.value = error;
             })
     }
 
