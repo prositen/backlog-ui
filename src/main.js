@@ -7,7 +7,7 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import App from './App.vue';
 
-axios.defaults.baseURL = 'http://localhost:5150/';
+axios.defaults.baseURL = import.meta.env.VITE_BACKLOG_REPORT_URL
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia);

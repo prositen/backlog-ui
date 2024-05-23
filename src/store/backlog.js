@@ -80,8 +80,8 @@ export const useBacklogStore = defineStore('backlog', () => {
         loading.value = true;
         message.value = 'Laddar';
         await axios.get(refresh_url)
-            .then((response) => {
-                    message.value = response.data.message;
+            .then((_) => {
+                    message.value = '';
                     loading.value = false;
                     fetchBacklog()
                 }
