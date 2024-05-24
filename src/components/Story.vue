@@ -9,6 +9,8 @@ import {ref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
+import StoryMeta from "@/components/StoryMeta.vue";
+import AddTag from "@/components/AddTag.vue";
 
 defineProps(['story'])
 const storyDrawer = ref(false);
@@ -16,23 +18,6 @@ const blStore = useBacklogStore();
 const pStore = usePersonStore();
 const cStore = useComponentStore();
 
-const addPersonVisible = ref(false);
-const addPerson = ref();
-
-const addComponentVisible = ref(false);
-const addComponent = ref();
-
-async function addPersonToStory(story_id, person_id) {
-  await blStore.addPersonToStory(story_id, person_id);
-  addPerson.value = '';
-  addPersonVisible.value = false;
-}
-
-async function addComponentToStory(story_id, component_id) {
-  await blStore.addComponentToStory(story_id, component_id);
-  addComponent.value = '';
-  addComponentVisible.value = false;
-}
 </script>
 
 <template>
@@ -58,72 +43,34 @@ async function addComponentToStory(story_id, component_id) {
         </div>
         <hr>
 
-        <div class="story-meta">Prioritet: {{ story.priority ?? "Ej satt" }}</div>
-        <div class="story-meta">Periodsplanering: {{ story.period ?? "Ej satt" }}</div>
+        <StoryMeta header="Prioritet"> {{ story.priority ?? "Ej satt" }}</StoryMeta>
+        <StoryMeta header="Periodsplanering"> {{ story.period ?? "Ej satt" }}</StoryMeta>
 
-        <div class="story-meta" v-if="story.labels.length">Labels:
-          <el-tag type="info" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
-              label
-            }}
+        <StoryMeta v-if="story.labels.length" header="Labels">
+          <el-tag type="info" :key="label" effect="plain" size="small" v-for="label in story.labels">
+            {{ label }}
           </el-tag>
-        </div>
-        <div class="story-meta">Personer:
-          <el-tag v-for="person in story.persons"
-                  type="success"
-                  :key="person.name" effect="plain"
-                  closable
-                  @close="blStore.removePersonFromStory(story.id, person.id)"
-          >{{ person.name }}
-          </el-tag>
-          <div v-if="addPersonVisible">
-            <el-select clearable
-                       v-model="addPerson"
-                       class="w-20"
-                       size="small"
-                       style="width: 400px;"
-                       @clear="addPersonVisible=false">
-              <el-option
-                  v-for="person of pStore.persons"
-                  :key="person.id"
-                  :label="person.name"
-                  :value="person.id"/>
-            </el-select>
-            <el-button v-if="addPerson" size="small" @click="addPersonToStory(story.id, addPerson)">Spara</el-button>
-          </div>
-          <el-button v-else class="button-new-tag" size="small" @click="addPersonVisible = true">
-            + Lägg till person
-          </el-button>
-        </div>
+        </StoryMeta>
 
-        <div class="story-meta">Systemkomponenter:
-          <el-tag v-for="component in story.components"
-                  type="success"
-                  :key="component.name" effect="plain"
-                  closable
-                  @close="blStore.removeComponentFromStory(story.id, component.id)"
-          >{{ component.name }}
-          </el-tag>
-          <div v-if="addComponentVisible">
-            <el-select clearable
-                       v-model="addComponent"
-                       class="w-20"
-                       size="small"
-                       style="width: 400px;"
-                       @clear="addComponentVisible=false">
-              <el-option
-                  v-for="component of cStore.components"
-                  :key="component.id"
-                  :label="component.name"
-                  :value="component.id"/>
-            </el-select>
-            <el-button v-if="addComponent" size="small" @click="addComponentToStory(story.id, addComponent)">Spara</el-button>
-          </div>
-          <el-button v-else class="button-new-tag" size="small" @click="addComponentVisible = true">
-            + Lägg till komponent
-          </el-button>
-        </div>
+        <StoryMeta header="Personer">
+          <AddTag :story-items="story.persons"
+                  :api-items="pStore.persons"
+                  :story-id="story.id"
+                  :add-fn="blStore.addPersonToStory"
+                  :remove-fn="blStore.removePersonFromStory"
+          />
+        </StoryMeta>
 
+        <StoryMeta header="Systemkomponenter">
+          <AddTag :story-items="story.components"
+                  :api-items="cStore.components"
+                  :story-id="story.id"
+                  :add-fn="blStore.addComponentToStory"
+                  :remove-fn="blStore.removeComponentFromStory"
+          />
+        </StoryMeta>
       </el-drawer>
+
       <el-tag type="primary" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
           label
         }}
