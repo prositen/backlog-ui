@@ -1,7 +1,7 @@
 <script setup>
 defineProps({
   size: { default: 25 },
-  color: { default: "white" }
+  color: { default: "grey" }
 })
 </script>
 <template>
