@@ -130,10 +130,37 @@ export const useBacklogStore = defineStore('backlog', () => {
         loading.value = false;
     }
 
+    async function addComponentToStory(story_id, component_id) {
+        const url = '/stories/' + story_id + '/component/' + component_id;
+        loading.value = true;
+        await axios.put(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
+    async function removeComponentFromStory(story_id, person_id) {
+        const url = '/stories/' + story_id + '/component/' + person_id;
+        loading.value = true;
+        await axios.delete(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
     return {
         stories, total, prios, labels, periods, message, loading,
         updateFromShortcut, fetchBacklog,
         comparePeriod, comparePrio,
-        addPersonToStory, removePersonFromStory
+        addPersonToStory, removePersonFromStory,
+        addComponentToStory, removeComponentFromStory
     }
 })

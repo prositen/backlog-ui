@@ -8,18 +8,30 @@ import {ref} from "vue";
 
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
+import {useComponentStore} from "@/store/components.js";
 
 defineProps(['story'])
 const storyDrawer = ref(false);
 const blStore = useBacklogStore();
 const pStore = usePersonStore();
+const cStore = useComponentStore();
+
 const addPersonVisible = ref(false);
 const addPerson = ref();
+
+const addComponentVisible = ref(false);
+const addComponent = ref();
 
 async function addPersonToStory(story_id, person_id) {
   await blStore.addPersonToStory(story_id, person_id);
   addPerson.value = '';
   addPersonVisible.value = false;
+}
+
+async function addComponentToStory(story_id, component_id) {
+  await blStore.addComponentToStory(story_id, component_id);
+  addComponent.value = '';
+  addComponentVisible.value = false;
 }
 </script>
 
@@ -80,6 +92,34 @@ async function addPersonToStory(story_id, person_id) {
           </div>
           <el-button v-else class="button-new-tag" size="small" @click="addPersonVisible = true">
             + Lägg till person
+          </el-button>
+        </div>
+
+        <div class="story-meta">Systemkomponenter:
+          <el-tag v-for="component in story.components"
+                  type="success"
+                  :key="component.name" effect="plain"
+                  closable
+                  @close="blStore.removeComponentFromStory(story.id, component.id)"
+          >{{ component.name }}
+          </el-tag>
+          <div v-if="addComponentVisible">
+            <el-select clearable
+                       v-model="addComponent"
+                       class="w-20"
+                       size="small"
+                       style="width: 400px;"
+                       @clear="addComponentVisible=false">
+              <el-option
+                  v-for="component of cStore.components"
+                  :key="component.id"
+                  :label="component.name"
+                  :value="component.id"/>
+            </el-select>
+            <el-button v-if="addComponent" size="small" @click="addComponentToStory(story.id, addComponent)">Spara</el-button>
+          </div>
+          <el-button v-else class="button-new-tag" size="small" @click="addComponentVisible = true">
+            + Lägg till komponent
           </el-button>
         </div>
 

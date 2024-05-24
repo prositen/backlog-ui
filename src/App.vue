@@ -3,13 +3,16 @@ import Backlog from './components/Backlog.vue';
 import {onMounted} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
+import {useComponentStore} from "@/store/components.js";
 import Admin from "@/components/Admin.vue";
 
 const backlogStore = useBacklogStore();
 const personStore = usePersonStore();
+const componentStore = useComponentStore();
 onMounted(() => {
   backlogStore.fetchBacklog();
   personStore.fetchPersons();
+  componentStore.fetchComponents();
 })
 
 

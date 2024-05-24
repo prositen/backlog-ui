@@ -3,9 +3,11 @@ import Story from "@/components/Story.vue";
 import {computed, ref, toValue, unref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
+import {useComponentStore} from "@/store/components.js";
 
 const blStore = useBacklogStore();
 const pStore = usePersonStore();
+const cStore = useComponentStore();
 const sort_by = ref({
   'id': 0,
   'created': 0,
@@ -59,6 +61,16 @@ function filter_person(item, value) {
   }
 }
 
+function filter_component(item, value) {
+  if (value === 'all') {
+    return true;
+  } else if ([null, 'null'].includes(value)) {
+    return item.components.length === 0;
+  } else {
+    return item.components.map(a => a.id).includes(value);
+  }
+}
+
 function sort_by_str(field, a, b) {
   return a[field].localeCompare(b[field], 'se') * toValue(sort_by)[field];
 }
@@ -101,6 +113,7 @@ const stories = computed(() => {
       .filter(item => filter_prio(item, unref(filterPrio)))
       .filter(item => filter_label(item, unref(filterLabel))))
       .filter(item => filter_person(item, unref(filterPerson)))
+      .filter(item => filter_component(item, unref(filterComponent)))
 })
 
 async function sortBy(sort_column) {
@@ -130,6 +143,7 @@ const filterPeriod = ref('all');
 const filterPrio = ref('all');
 const filterLabel = ref('all');
 const filterPerson = ref('all');
+const filterComponent = ref('all');
 
 </script>
 
@@ -176,7 +190,7 @@ const filterPerson = ref('all');
         />
       </el-select>
       Person:
-      <el-select v-model="filterPerson" placeholder="Välj person" >
+      <el-select v-model="filterPerson" placeholder="Välj person">
         <el-option
             key="person-all"
             label="Alla"
@@ -192,6 +206,22 @@ const filterPerson = ref('all');
             value="null"/>
       </el-select>
 
+      Systemkomponent:
+      <el-select v-model="filterComponent" placeholder="Välj komponent">
+        <el-option
+            key="component-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="component of cStore.components"
+            :key="component.id"
+            :label="component.name"
+            :value="component.id"/>
+        <el-option
+            key="component-none"
+            label="Ej satt"
+            value="null"/>
+      </el-select>
     </nav>
     <div class="stories-container">
       <nav>

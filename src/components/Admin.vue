@@ -1,19 +1,33 @@
 <script setup>
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
+import {useComponentStore} from "@/store/components.js";
 import {ref} from "vue";
 
 
 const blStore = useBacklogStore();
 const pStore = usePersonStore();
+const cStore = useComponentStore();
+
 const addPersonVisible = ref(false);
 const personName = ref();
+
+const addComponentVisible = ref(false);
+const componentName = ref();
 
 async function addPerson(name) {
   if (name.length > 0) {
     await pStore.addPerson(name);
     addPersonVisible.value = false;
     personName.value = "";
+  }
+}
+
+async function addComponent(name) {
+  if (name.length > 0) {
+    await cStore.addComponent(name);
+    addComponentVisible.value = false;
+    componentName.value = "";
   }
 }
 </script>
@@ -37,6 +51,7 @@ async function addPerson(name) {
         </div>
       </div>
     </div>
+
     <hr>
     <div class="admin-persons row">
 
@@ -55,6 +70,27 @@ async function addPerson(name) {
         </div>
 
         <el-button v-else @click="addPersonVisible=true">+ Lägg till</el-button>
+      </div>
+    </div>
+    <hr>
+
+    <div class="admin-persons row">
+
+      <h2>Systemkomponenter</h2>
+      <div class="cell">
+        <div v-for="component in cStore.components">{{ component.name }}</div>
+        <div v-if="addComponentVisible">
+          <el-input
+              @keyup.enter="addComponent(componentName)"
+              size="small"
+              style="width: 240px;"
+              v-model="componentName"></el-input>
+          <el-button v-if="componentName" size="small" @click="addComponent(componentName)">
+            Spara
+          </el-button>
+        </div>
+
+        <el-button v-else @click="addComponentVisible=true">+ Lägg till</el-button>
       </div>
     </div>
   </div>
