@@ -4,10 +4,13 @@ defineProps(['header'])
 
 <template>
   <div class="story-meta">{{ header }}:
-    <slot>Test</slot>
+    <slot></slot>
   </div>
 </template>
 
 <style scoped>
-
+.story-meta {
+  font-size: small;
+  margin-top: 0.5rem;
+}
 </style>

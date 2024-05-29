@@ -1,13 +1,15 @@
 <script setup>
-import Story from "@/components/Story.vue";
+import Story from "@/components/story/Story.vue";
 import {computed, ref, toValue, unref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
+import {useEpicGroupStore} from "@/store/epicgroup.js";
 
 const blStore = useBacklogStore();
 const pStore = usePersonStore();
 const cStore = useComponentStore();
+const eStore = useEpicGroupStore();
 const sort_by = ref({
   'id': 0,
   'created': 0,
@@ -61,6 +63,13 @@ function filter_person(item, value) {
   }
 }
 
+function filter_q(item, value) {
+  if (value.length) {
+    return item.name.toLowerCase().includes(value.toLowerCase())
+  }
+  return true;
+}
+
 function filter_component(item, value) {
   if (value === 'all') {
     return true;
@@ -68,6 +77,16 @@ function filter_component(item, value) {
     return item.components.length === 0;
   } else {
     return item.components.map(a => a.id).includes(value);
+  }
+}
+
+function filter_epic_group(item, value) {
+  if (value === 'all') {
+    return true;
+  } else if ([null, 'null'].includes(value)) {
+    return item.epic_groups.length === 0;
+  } else {
+    return item.epic_groups.map(a => a.id).includes(value);
   }
 }
 
@@ -114,6 +133,8 @@ const stories = computed(() => {
       .filter(item => filter_label(item, unref(filterLabel))))
       .filter(item => filter_person(item, unref(filterPerson)))
       .filter(item => filter_component(item, unref(filterComponent)))
+      .filter(item => filter_epic_group(item, unref(filterEpicGroup)))
+      .filter(item => filter_q(item, unref(q)))
 })
 
 async function sortBy(sort_column) {
@@ -144,7 +165,8 @@ const filterPrio = ref('all');
 const filterLabel = ref('all');
 const filterPerson = ref('all');
 const filterComponent = ref('all');
-
+const filterEpicGroup = ref('all');
+const q = ref('');
 </script>
 
 <template>
@@ -222,6 +244,26 @@ const filterComponent = ref('all');
             label="Ej satt"
             value="null"/>
       </el-select>
+
+      Övergripande epic:
+      <el-select v-model="filterEpicGroup" placeholder="Välj övergripnade epic">
+        <el-option
+            key="epicGroup-all"
+            label="Alla"
+            value="all"/>
+        <el-option
+            v-for="epicGroup of eStore.epicGroups"
+            :key="epicGroup.id"
+            :label="epicGroup.name"
+            :value="epicGroup.id"/>
+        <el-option
+            key="epicGroup-none"
+            label="Ej satt"
+            value="null"/>
+      </el-select>
+      Sök:
+      <el-input v-model="q" clearable style="max-width: 400px;"
+                placeholder="Sök på namn eller beskrivning"></el-input>
     </nav>
     <div class="stories-container">
       <nav>
@@ -254,7 +296,7 @@ const filterComponent = ref('all');
 
 div.backlog-container {
   display: grid;
-  grid-template-columns: [nav] auto [backlog] 1fr [end];
+  grid-template-columns: [nav] fit-content(15%) [backlog] 1fr [end];
 
   column-gap: 1rem;
   grid-template-areas: "tabs backlog";

@@ -2,33 +2,33 @@ import {defineStore} from 'pinia';
 import axios from 'axios';
 import {computed, ref} from "vue";
 
-export const useComponentStore = defineStore('component', () => {
-    const componentMap = ref(new Map());
+export const useEpicGroupStore = defineStore('epicGroup', () => {
+    const epicGroupMap = ref(new Map());
     const message = ref('');
     const loading = ref(false);
-    const components = computed(() => {
-        return [...componentMap.value.values()]
+    const epicGroups = computed(() => {
+        return [...epicGroupMap.value.values()]
     })
 
-    async function fetchComponents() {
-        const url = '/components';
+    async function fetchEpicGroups() {
+        const url = '/epic-groups'
         await axios.get(url)
             .then((response) => {
-                componentMap.value = new Map(response.data.map(obj => [obj.id, obj]));
+                epicGroupMap.value = new Map(response.data.map(obj => [obj.id, obj]));
             })
             .catch((error) => {
-                console.log(error);
+                message.value = error;
             })
     }
 
-    async function addComponent(name) {
-        const url = '/components'
+    async function addEpicGroup(name) {
+        const url = '/epic-groups'
         loading.value = true;
         await axios.post(url,
             {'name': name}
         )
             .then((response) => {
-                componentMap.value.set(response.data.id, response.data);
+                epicGroupMap.value.set(response.data.id, response.data)
             })
             .catch((error) => {
                 message.value = error;
@@ -36,23 +36,23 @@ export const useComponentStore = defineStore('component', () => {
         loading.value = false;
     }
 
-    async function updateComponent(id, name) {
-        const url = '/components/' + id;
+    async function updateEpicGroup(id, name) {
+        const url = '/epic-groups/' + id;
         await axios.post(url,
             {'id': id, 'name': name})
             .then((response) => {
-                componentMap.value.set(response.data.id, response.data);
+                epicGroupMap.value.set(response.data.id, response.data)
             })
             .catch((error) => {
                 message.value = error;
             })
     }
 
-    async function deleteComponent(id) {
-        const url = '/components/' + id;
+    async function deleteEpicGroup(id) {
+        const url = '/epic-groups/' + id;
         await axios.delete(url)
             .then(() => {
-                componentMap.value.delete(id);
+                epicGroupMap.value.delete(id);
             })
             .catch((error) => {
                 message.value = error;
@@ -60,7 +60,8 @@ export const useComponentStore = defineStore('component', () => {
     }
 
     return {
-        components, message, loading,
-        fetchComponents, addComponent, updateComponent, deleteComponent
+        epicGroups, message, loading,
+        fetchEpicGroups, addEpicGroup, updateEpicGroup, deleteEpicGroup
     }
 })
+

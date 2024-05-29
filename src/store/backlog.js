@@ -143,8 +143,34 @@ export const useBacklogStore = defineStore('backlog', () => {
         loading.value = false;
     }
 
-    async function removeComponentFromStory(story_id, person_id) {
-        const url = '/stories/' + story_id + '/component/' + person_id;
+    async function removeComponentFromStory(story_id, component_id) {
+        const url = '/stories/' + story_id + '/component/' + component_id;
+        loading.value = true;
+        await axios.delete(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
+    async function addEpicGroupToStory(story_id, epic_group_id) {
+        const url = '/stories/' + story_id + '/epic-group/' + epic_group_id;
+        loading.value = true;
+        await axios.put(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
+    async function removeEpicGroupFromStory(story_id, epic_group_id) {
+        const url = '/stories/' + story_id + '/epic-group/' + epic_group_id;
         loading.value = true;
         await axios.delete(url)
             .then((response) => {
@@ -161,6 +187,7 @@ export const useBacklogStore = defineStore('backlog', () => {
         updateFromShortcut, fetchBacklog,
         comparePeriod, comparePrio,
         addPersonToStory, removePersonFromStory,
-        addComponentToStory, removeComponentFromStory
+        addComponentToStory, removeComponentFromStory,
+        addEpicGroupToStory, removeEpicGroupFromStory
     }
 })
