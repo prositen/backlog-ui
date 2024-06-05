@@ -1,13 +1,16 @@
 import {defineStore} from 'pinia';
 import axios from 'axios';
 import {computed, ref} from "vue";
+import sortString from "@/components/common/sort.js";
 
 export const useEpicGroupStore = defineStore('epicGroup', () => {
     const epicGroupMap = ref(new Map());
     const message = ref('');
     const loading = ref(false);
     const epicGroups = computed(() => {
-        return [...epicGroupMap.value.values()]
+        return [...epicGroupMap.value.values()].sort((a,b) => {
+            return sortString(a,b, 'name')
+        });
     })
 
     async function fetchEpicGroups() {

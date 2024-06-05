@@ -7,6 +7,7 @@ import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
 import {useEpicGroupStore} from "@/store/epicgroup.js";
+import {useProductStore} from "@/store/products.js";
 
 defineProps(['story'])
 
@@ -14,6 +15,7 @@ const blStore = useBacklogStore();
 const pStore = usePersonStore();
 const cStore = useComponentStore();
 const eStore = useEpicGroupStore();
+const productStore = useProductStore();
 </script>
 
 <template>
@@ -40,6 +42,15 @@ const eStore = useEpicGroupStore();
             :add-fn="blStore.addPersonToStory"
             :remove-fn="blStore.removePersonFromStory"
     />
+  </StoryMeta>
+
+  <StoryMeta header="Produkter">
+    <AddTag :story-items="story.products"
+            :api-items="productStore.products"
+            :story-id="story.id"
+            :add-fn="blStore.addProductToStory"
+            :remove-fn="blStore.removeProductFromStory"
+            />
   </StoryMeta>
 
   <StoryMeta header="Systemkomponenter">

@@ -7,6 +7,7 @@ import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
 import {useEpicGroupStore} from "@/store/epicgroup.js";
+import {useProductStore} from "@/store/products.js";
 
 import Backlog from './components/backlog/Backlog.vue';
 import Admin from "@/components/admin/Admin.vue";
@@ -15,12 +16,14 @@ const backlogStore = useBacklogStore();
 const personStore = usePersonStore();
 const componentStore = useComponentStore();
 const epicGroupStore = useEpicGroupStore();
+const productStore = useProductStore();
 
 onMounted(() => {
   backlogStore.fetchBacklog();
   personStore.fetchPersons();
   componentStore.fetchComponents();
   epicGroupStore.fetchEpicGroups();
+  productStore.fetchProducts();
 })
 
 const isDark = useDark();

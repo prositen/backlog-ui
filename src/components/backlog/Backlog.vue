@@ -1,15 +1,21 @@
 <script setup>
 import Story from "@/components/story/Story.vue";
-import {computed, ref, toValue, unref} from "vue";
+import {computed, ref, unref} from "vue";
 import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
 import {useEpicGroupStore} from "@/store/epicgroup.js";
+import {useProductStore} from "@/store/products.js";
+
+import {sortDate, sortInt, sortNothing, sortString} from "@/components/common/sort.js";
+import {filter_field, filter_field_list} from "@/components/common/filter.js";
 
 const blStore = useBacklogStore();
-const pStore = usePersonStore();
+const personStore = usePersonStore();
 const cStore = useComponentStore();
 const eStore = useEpicGroupStore();
+const productStore = useProductStore();
+
 const sort_by = ref({
   'id': 0,
   'created': 0,
@@ -21,47 +27,6 @@ const sort_by = ref({
 
 const sort_order = ref([]);
 
-function filter_label(item, value) {
-  if (value === 'all') {
-    return true;
-  } else if ([null, 'null'].includes(value)) {
-    return item.labels.length === 0;
-  } else {
-    return item.labels.includes(value);
-  }
-}
-
-function filter_prio(item, value) {
-  if (value === 'all') {
-    return true;
-  } else {
-    if (value === 'null') {
-      value = null;
-    }
-    return item.priority === value;
-  }
-}
-
-function filter_period(item, value) {
-  if (value === 'all') {
-    return true;
-  } else {
-    if (value === 'null') {
-      value = null;
-    }
-    return item.period === value;
-  }
-}
-
-function filter_person(item, value) {
-  if (value === 'all') {
-    return true;
-  } else if ([null, 'null'].includes(value)) {
-    return item.persons.length === 0;
-  } else {
-    return item.persons.map(a => a.id).includes(value);
-  }
-}
 
 function filter_q(item, value) {
   if (value.length) {
@@ -70,70 +35,50 @@ function filter_q(item, value) {
   return true;
 }
 
-function filter_component(item, value) {
-  if (value === 'all') {
-    return true;
-  } else if ([null, 'null'].includes(value)) {
-    return item.components.length === 0;
-  } else {
-    return item.components.map(a => a.id).includes(value);
-  }
+
+function comparePrio(a, b, field, sort_order) {
+  return blStore.comparePrio(a[field], b[field], sort_order)
 }
 
-function filter_epic_group(item, value) {
-  if (value === 'all') {
-    return true;
-  } else if ([null, 'null'].includes(value)) {
-    return item.epic_groups.length === 0;
-  } else {
-    return item.epic_groups.map(a => a.id).includes(value);
-  }
-}
-
-function sort_by_str(field, a, b) {
-  return a[field].localeCompare(b[field], 'se') * toValue(sort_by)[field];
-}
-
-function sort_by_date(field, a, b) {
-  const da = Date.parse(a[field]);
-  const db = Date.parse(b[field]);
-  let cmp = 0;
-  if (da < db) {
-    cmp = -1;
-  } else if (da > db) {
-    cmp = 1
-  }
-  return cmp * toValue(sort_by)[field];
+function comparePeriod(a, b, field, sort_order) {
+  return blStore.comparePeriod(a[field], b[field], sort_order)
 }
 
 function sort_stories(items) {
   for (let column of sort_order.value) {
+    const sort_order = unref(sort_by)[column];
+    let sortFn = sortNothing
     switch (column) {
       case 'name':
-        items.sort((a, b) => sort_by_str(column, a, b));
+        sortFn = sortString;
+        break;
+      case 'id':
+        sortFn = sortInt;
         break;
       case 'updated':
       case 'created':
-        items.sort((a, b) => sort_by_date(column, a, b))
+        sortFn = sortDate;
         break;
       case 'priority':
-        items.sort((a, b) => blStore.comparePrio(a.priority, b.priority, sort_by.value[column]));
+        sortFn = comparePrio;
         break;
       case 'period':
-        items.sort((a, b) => blStore.comparePeriod(a.period, b.period, sort_by.value[column]));
+        sortFn = comparePeriod;
     }
+    items.sort((a, b) => sortFn(a, b, column, sort_order));
   }
   return items;
 }
 
 const stories = computed(() => {
   return sort_stories(blStore.stories
-      .filter(item => filter_period(item, unref(filterPeriod)))
-      .filter(item => filter_prio(item, unref(filterPrio)))
-      .filter(item => filter_label(item, unref(filterLabel))))
-      .filter(item => filter_person(item, unref(filterPerson)))
-      .filter(item => filter_component(item, unref(filterComponent)))
-      .filter(item => filter_epic_group(item, unref(filterEpicGroup)))
+      .filter(item => filter_field('period', item, unref(filterPeriod)))
+      .filter(item => filter_field('priority', item, unref(filterPrio)))
+      .filter(item => filter_field_list('labels', item, unref(filterLabel))))
+      .filter(item => filter_field_list('persons', item, unref(filterPerson)))
+      .filter(item => filter_field_list('components', item, unref(filterComponent)))
+      .filter(item => filter_field_list('epic_groups', item, unref(filterEpicGroup)))
+      .filter(item => filter_field_list('products', item, unref(filterProduct)))
       .filter(item => filter_q(item, unref(q)))
 })
 
@@ -166,13 +111,15 @@ const filterLabel = ref('all');
 const filterPerson = ref('all');
 const filterComponent = ref('all');
 const filterEpicGroup = ref('all');
+const filterProduct = ref('all');
+
 const q = ref('');
 </script>
 
 <template>
   <div class="backlog-container">
     <nav class="filter-container">
-      Period:
+      <span class="shortcut">Periodsplanering</span>
       <el-select v-model="filterPeriod" placeholder="Välj period">
         <el-option
             key="period-all"
@@ -185,7 +132,7 @@ const q = ref('');
             :value="period ?? 'null'"/>
       </el-select>
 
-      Prioritet:
+      <span class="shortcut">Prioritet:</span>
       <el-select v-model="filterPrio" placeholder="Välj prio">
         <el-option
             key="prio-all"
@@ -198,7 +145,7 @@ const q = ref('');
             :value="prio ?? 'null'"/>
       </el-select>
 
-      Label:
+      <span class="shortcut">Label:</span>
       <el-select v-model="filterLabel" placeholder="Välj label">
         <el-option
             key="label-all"
@@ -218,7 +165,7 @@ const q = ref('');
             label="Alla"
             value="all"/>
         <el-option
-            v-for="person of pStore.persons"
+            v-for="person in personStore.persons"
             :key="person.id"
             :label="person.name"
             :value="person.id"/>
@@ -245,6 +192,24 @@ const q = ref('');
             value="null"/>
       </el-select>
 
+      Produkt:
+      <el-select v-model="filterProduct" placeholder="Välj produkt">
+        <el-option
+            key="product-all"
+            label="Alla"
+            value="all"
+        />
+        <el-option
+            v-for="product of productStore.products"
+            :key="product.id"
+            :label="product.name"
+            :value="product.id"
+        />
+        <el-option
+            key="product-none"
+            label="Ej satt"
+            value="null"/>
+      </el-select>
       Övergripande epic:
       <el-select v-model="filterEpicGroup" placeholder="Välj övergripnade epic">
         <el-option
@@ -381,6 +346,17 @@ nav div a.sort-1:after {
   position: absolute;
 }
 
+.shortcut:before {
+  background-image: url("/Shortcut.svg");
+  background-size: 1rem 1rem;
+  width: 1rem;
+  height: 1rem;
+  background-repeat: no-repeat;
+  content: "";
+  display: inline-block;
+  margin-right: 0.2rem;
+}
+
 hr {
   grid-column-start: start;
   grid-column-end: end;
@@ -418,5 +394,7 @@ footer div {
   grid-column: start / story;
 }
 
-
+.el-select {
+  padding-bottom: 0.8rem;
+}
 </style>

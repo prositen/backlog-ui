@@ -182,12 +182,39 @@ export const useBacklogStore = defineStore('backlog', () => {
         loading.value = false;
     }
 
+        async function addProductToStory(story_id, product_id) {
+        const url = '/stories/' + story_id + '/product/' + product_id;
+        loading.value = true;
+        await axios.put(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
+    async function removeProductFromStory(story_id, product_id) {
+        const url = '/stories/' + story_id + '/product/' + product_id;
+        loading.value = true;
+        await axios.delete(url)
+            .then((response) => {
+                storiesMap.value.set(response.data.id, response.data);
+            })
+            .catch((error) => {
+                message.value = error;
+            })
+        loading.value = false;
+    }
+
     return {
         stories, total, prios, labels, periods, message, loading,
         updateFromShortcut, fetchBacklog,
         comparePeriod, comparePrio,
         addPersonToStory, removePersonFromStory,
         addComponentToStory, removeComponentFromStory,
-        addEpicGroupToStory, removeEpicGroupFromStory
+        addEpicGroupToStory, removeEpicGroupFromStory,
+        addProductToStory, removeProductFromStory
     }
 })

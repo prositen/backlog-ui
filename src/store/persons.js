@@ -1,13 +1,17 @@
 import {defineStore} from 'pinia';
 import axios from 'axios';
 import {computed, ref} from "vue";
+import sortString from "@/components/common/sort.js";
 
 export const usePersonStore = defineStore('person', () => {
     const personMap = ref(new Map());
     const message = ref('');
     const loading = ref(false);
     const persons = computed(() => {
-        return [...personMap.value.values()]
+        return [...personMap.value.values()].sort((a, b) => {
+            return sortString(a, b, 'name')
+        });
+
     })
 
     async function fetchPersons() {

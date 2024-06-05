@@ -3,14 +3,15 @@ import {useBacklogStore} from "@/store/backlog.js";
 import {usePersonStore} from "@/store/persons.js";
 import {useComponentStore} from "@/store/components.js";
 import {useEpicGroupStore} from "@/store/epicgroup.js";
+import {useProductStore} from "@/store/products.js";
 import ListFieldValues from "@/components/admin/ListFieldValues.vue";
 
 
 const blStore = useBacklogStore();
-const pStore = usePersonStore();
+const personStore = usePersonStore();
 const cStore = useComponentStore();
 const eStore = useEpicGroupStore();
-
+const productStore = useProductStore();
 
 </script>
 
@@ -38,12 +39,15 @@ const eStore = useEpicGroupStore();
     <div class="admin-persons row">
       <ListFieldValues
           header="Personer"
-          :api-items="pStore.persons"
-          :add-fn="pStore.addPerson"
-          :remove-fn="pStore.deletePerson"
-          :edit-fn="pStore.updatePerson"
+          :api-items="personStore.persons"
+          :add-fn="personStore.addPerson"
+          :remove-fn="personStore.deletePerson"
+          :edit-fn="personStore.updatePerson"
           :reload-stories-fn="blStore.fetchBacklog"
-      />
+      >Personer i backlog-report är helt frikopplade från personer i Shortcut. De behöver inte finnas som användare
+        i Shortcut och vi läser inte heller något automatiskt därifrån. Varje backlog-story kan tilldelas valfritt
+        antal personer.
+      </ListFieldValues>
     </div>
     <hr>
 
@@ -55,10 +59,24 @@ const eStore = useEpicGroupStore();
           :remove-fn="cStore.deleteComponent"
           :edit-fn="cStore.updateComponent"
           :reload-stories-fn="blStore.fetchBacklog"
-      />
+      >Systemkomponenter i backlog-report är helt frikopplade från systemkomponenter i Shortcut. Varje backlog-story
+        kan tilldelas valfritt antal systemkomponenter.
+      </ListFieldValues>
     </div>
     <hr>
 
+    <div class="admin-products row">
+      <ListFieldValues
+          header="Produkter"
+          :api-items="productStore.products"
+          :add-fn="productStore.addProduct"
+          :remove-fn="productStore.deleteProduct"
+          :edit-fn="productStore.updateProduct"
+          :reload-stories-fn="blStore.fetchBacklog"
+      >Produkter är helt frikopplade från Shortcut. Varje backlog-story kan tilldelas valfritt antal produkter.
+      </ListFieldValues>
+    </div>
+    <hr>
     <div class="admin-epic-groups row">
       <ListFieldValues
           header="Övergripande epics"
@@ -67,7 +85,9 @@ const eStore = useEpicGroupStore();
           :remove-fn="eStore.deleteEpicGroup"
           :edit-fn="eStore.updateEpicGroup"
           :reload-stories-fn="blStore.fetchBacklog"
-      />
+      >"Övergripande epics" är helt frikopplade från Shortcut. Varje backlog-story kan tilldelas valfritt antal
+        övergripande epic.
+      </ListFieldValues>
     </div>
   </div>
 </template>

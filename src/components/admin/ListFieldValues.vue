@@ -20,7 +20,9 @@ defineProps({
 
 <template>
   <h2>{{ header }}</h2>
+
   <div class="cell">
+    <slot></slot>
     <div class="item" v-for="item in apiItems">
       <EditFieldValue :edit-fn="editFn"
                       :remove-fn="removeFn"
