@@ -3,35 +3,35 @@ import axios from 'axios';
 import {computed, ref} from "vue";
 import sortString from "@/components/common/sort.js";
 
-export const useComponentStore = defineStore('component', () => {
-    const componentMap = ref(new Map());
+export const useProductStore = defineStore('product', () => {
+    const productMap = ref(new Map());
     const message = ref('');
     const loading = ref(false);
-    const components = computed(() => {
-        return [...componentMap.value.values()].sort((a,b) => {
-            return sortString(a,b, 'name')
+    const products = computed(() => {
+        return [...productMap.value.values()].sort((a, b) => {
+            return sortString(a, b, 'name')
         });
     })
 
-    async function fetchComponents() {
-        const url = '/components';
+    async function fetchProducts() {
+        const url = '/products';
         await axios.get(url)
             .then((response) => {
-                componentMap.value = new Map(response.data.map(obj => [obj.id, obj]));
+                productMap.value = new Map(response.data.map(obj => [obj.id, obj]));
             })
             .catch((error) => {
                 console.log(error);
             })
     }
 
-    async function addComponent(name) {
-        const url = '/components'
+    async function addProduct(name) {
+        const url = '/products'
         loading.value = true;
         await axios.post(url,
             {'name': name}
         )
             .then((response) => {
-                componentMap.value.set(response.data.id, response.data);
+                productMap.value.set(response.data.id, response.data);
             })
             .catch((error) => {
                 message.value = error;
@@ -39,23 +39,23 @@ export const useComponentStore = defineStore('component', () => {
         loading.value = false;
     }
 
-    async function updateComponent(id, name) {
-        const url = '/components/' + id;
+    async function updateProduct(id, name) {
+        const url = '/products/' + id;
         await axios.post(url,
             {'id': id, 'name': name})
             .then((response) => {
-                componentMap.value.set(response.data.id, response.data);
+                productMap.value.set(response.data.id, response.data);
             })
             .catch((error) => {
                 message.value = error;
             })
     }
 
-    async function deleteComponent(id) {
-        const url = '/components/' + id;
+    async function deleteProduct(id) {
+        const url = '/products/' + id;
         await axios.delete(url)
             .then(() => {
-                componentMap.value.delete(id);
+                productMap.value.delete(id);
             })
             .catch((error) => {
                 message.value = error;
@@ -63,7 +63,7 @@ export const useComponentStore = defineStore('component', () => {
     }
 
     return {
-        components, message, loading,
-        fetchComponents, addComponent, updateComponent, deleteComponent
+        products, message, loading,
+        fetchProducts, addProduct, updateProduct, deleteProduct
     }
 })

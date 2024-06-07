@@ -12,7 +12,8 @@ defineProps({
   },
   addFn: {},
   removeFn: {},
-  storyId: {}
+  storyId: {},
+  type: {default: 'success'}
 })
 
 const addVisible = ref(false);
@@ -20,6 +21,10 @@ const addItem = ref();
 
 async function addItemToStory(fn, story_id, item_id) {
   await fn(story_id, item_id);
+  close();
+}
+
+function close() {
   addItem.value = '';
   addVisible.value = false;
 }
@@ -27,7 +32,7 @@ async function addItemToStory(fn, story_id, item_id) {
 
 <template>
   <el-tag v-for="item in storyItems"
-          type="success"
+          :type="type"
           :key='item[idField]'
           effect="plain"
           closable
@@ -36,6 +41,7 @@ async function addItemToStory(fn, story_id, item_id) {
   </el-tag>
   <div v-if="addVisible">
     <el-select clearable
+               filterable
                v-model="addItem"
                class="w-20"
                size="small"
@@ -49,9 +55,12 @@ async function addItemToStory(fn, story_id, item_id) {
       />
 
     </el-select>
-    <el-button v-if="addItem" size="small" @click="addItemToStory(addFn, storyId, addItem)">Spara</el-button>
+    <el-button-group>
+      <el-button :disabled="!addItem" size="small" @click="addItemToStory(addFn, storyId, addItem)">Spara</el-button>
+      <el-button size="small" @click="close()">Avbryt</el-button>
+    </el-button-group>
   </div>
-  <el-button v-else class="button-new-tag" size="small" @click="addVisible = true">
+  <el-button v-else class="button-new-tag" size="small" @click="addVisible = true;">
     + Lägg till
   </el-button>
 </template>
