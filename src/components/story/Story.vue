@@ -8,7 +8,7 @@ import ShortcutLink from "@/components/backlog/ShortcutLink.vue";
 import StoryDetails from "@/components/story/StoryDetails.vue";
 import {ref} from "vue";
 
-defineProps(['story'])
+defineProps(['story', 'showTags'])
 const storyDrawer = ref(false);
 </script>
 
@@ -35,6 +35,12 @@ const storyDrawer = ref(false);
           label
         }}
       </el-tag>
+      <template v-if="showTags">
+        <el-tag disable-transitions type="success" :key="person" v-for="person in story.persons" size="small">{{person.name}}</el-tag>
+        <el-tag disable-transitions type="warning" :key="product" v-for="product in story.products" size="small">{{product.name}}</el-tag>
+        <el-tag disable-transitions type="danger" :key="component" v-for="component in story.components" size="small">{{component.name}}</el-tag>
+        <el-tag disable-transitions type="info" :key="group" v-for="group in story.epic_groups" size="small">{{group.name}}</el-tag>
+      </template>
     </div>
     <div class="story-link story-meta">
       <ShortcutLink :id="story.id" :url="story.shortcut_url"/>

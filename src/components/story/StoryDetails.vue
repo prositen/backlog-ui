@@ -41,6 +41,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addPersonToStory"
             :remove-fn="blStore.removePersonFromStory"
+            type="success"
     />
   </StoryMeta>
 
@@ -50,6 +51,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addProductToStory"
             :remove-fn="blStore.removeProductFromStory"
+            type="warning"
             />
   </StoryMeta>
 
@@ -59,6 +61,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addComponentToStory"
             :remove-fn="blStore.removeComponentFromStory"
+            type="danger"
     />
   </StoryMeta>
 
@@ -68,6 +71,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addEpicGroupToStory"
             :remove-fn="blStore.removeEpicGroupFromStory"
+            type="info"
     />
 
   </StoryMeta>

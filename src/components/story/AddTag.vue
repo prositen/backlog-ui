@@ -12,7 +12,8 @@ defineProps({
   },
   addFn: {},
   removeFn: {},
-  storyId: {}
+  storyId: {},
+  type: {default: 'success'}
 })
 
 const addVisible = ref(false);
@@ -27,7 +28,7 @@ async function addItemToStory(fn, story_id, item_id) {
 
 <template>
   <el-tag v-for="item in storyItems"
-          type="success"
+          :type="type"
           :key='item[idField]'
           effect="plain"
           closable

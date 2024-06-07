@@ -116,6 +116,8 @@ const filterEpicGroup = ref('all');
 const filterProduct = ref('all');
 
 const q = ref('');
+
+const showAllTags = ref(false);
 </script>
 
 <template>
@@ -148,23 +150,26 @@ const q = ref('');
           @selected="(value) => filterPerson = value"/>
 
       <SelectFieldValue
-        title="Systemkomponent"
-        :items="cStore.components"
-        @selected="(value) => filterComponent = value"/>
+          title="Systemkomponent"
+          :items="cStore.components"
+          @selected="(value) => filterComponent = value"/>
 
       <SelectFieldValue
-        title="Produkt"
-        :items="productStore.products"
-        @selected="(value) => filterProduct = value"/>
+          title="Produkt"
+          :items="productStore.products"
+          @selected="(value) => filterProduct = value"/>
 
       <SelectFieldValue
-        title="Övergripande epic"
-        :items="eStore.epicGroups"
-        @selected="(value) => filterEpicGroup = value"/>
+          title="Övergripande epic"
+          :items="eStore.epicGroups"
+          @selected="(value) => filterEpicGroup = value"/>
 
       Sök:
       <el-input v-model="q" clearable style="max-width: 400px;"
                 placeholder="Sök på namn eller beskrivning"></el-input>
+
+      <el-checkbox
+      v-model="showAllTags">Visa alla taggar</el-checkbox>
     </nav>
     <div class="stories-container">
       <nav>
@@ -181,6 +186,7 @@ const q = ref('');
             v-for="story in stories"
             :story="story"
             :key="story.id"
+            :show-tags="showAllTags"
         />
 
         <hr>
@@ -320,5 +326,8 @@ footer div {
   grid-column: start / story;
 }
 
+.el-checkbox {
+  padding-top: 1rem;
+}
 
 </style>
