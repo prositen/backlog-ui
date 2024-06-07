@@ -61,7 +61,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addComponentToStory"
             :remove-fn="blStore.removeComponentFromStory"
-            type="danger"
+            type="primary"
     />
   </StoryMeta>
 
@@ -71,7 +71,7 @@ const productStore = useProductStore();
             :story-id="story.id"
             :add-fn="blStore.addEpicGroupToStory"
             :remove-fn="blStore.removeEpicGroupFromStory"
-            type="info"
+            type="danger"
     />
 
   </StoryMeta>

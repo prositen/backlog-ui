@@ -31,15 +31,15 @@ const storyDrawer = ref(false);
         </template>
         <StoryDetails :story="story"/>
       </el-drawer>
-      <el-tag type="primary" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
+      <el-tag type="info" :key="label" effect="plain" size="small" v-for="label in story.labels">{{
           label
         }}
       </el-tag>
       <template v-if="showTags">
         <el-tag disable-transitions type="success" :key="person" v-for="person in story.persons" size="small">{{person.name}}</el-tag>
         <el-tag disable-transitions type="warning" :key="product" v-for="product in story.products" size="small">{{product.name}}</el-tag>
-        <el-tag disable-transitions type="danger" :key="component" v-for="component in story.components" size="small">{{component.name}}</el-tag>
-        <el-tag disable-transitions type="info" :key="group" v-for="group in story.epic_groups" size="small">{{group.name}}</el-tag>
+        <el-tag disable-transitions type="primary" :key="component" v-for="component in story.components" size="small">{{component.name}}</el-tag>
+        <el-tag disable-transitions type="danger" :key="group" v-for="group in story.epic_groups" size="small">{{group.name}}</el-tag>
       </template>
     </div>
     <div class="story-link story-meta">
