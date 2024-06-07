@@ -11,25 +11,22 @@ const prioMap = {
 }
 export const useBacklogStore = defineStore('backlog', () => {
     const storiesMap = ref(new Map());
-    const stories = computed(() => {
-        return [...storiesMap.value.values()];
-    })
+    const stories = computed(() => [...storiesMap.value.values()])
     const total = ref(0);
     const loading = ref(false);
     const message = ref('');
-    const prios = computed(() => {
-        return [...new Set(stories.value.map(item => item.priority))].sort((a, b) => {
-            return comparePrio(a, b, 1);
-        })
-    })
-    const labels = computed(() => {
-        return new Set(stories.value.map(item => item.labels).flat()).add(null);
-    })
-    const periods = computed(() => {
-        return [...new Set(stories.value.map(item => item.period))].sort((a, b) => {
-            return comparePeriod(a, b, 1);
-        })
-    });
+    const prios = computed(() =>
+        [...new Set(stories.value.map(item => item.priority))]
+            .sort((a, b) => comparePrio(a, b, 1))
+    );
+    const labels = computed(() =>
+        [...new Set(stories.value.map(item => item.labels).flat()).add(null)]
+            .sort((a, b) => (a && b ? a.localeCompare(b) : 0))
+    );
+    const periods = computed(() =>
+        [...new Set(stories.value.map(item => item.period))]
+            .sort((a, b) => comparePeriod(a, b, 1))
+    );
 
     function compareEmpty(a, b) {
         if (!a && !b) {
@@ -182,7 +179,7 @@ export const useBacklogStore = defineStore('backlog', () => {
         loading.value = false;
     }
 
-        async function addProductToStory(story_id, product_id) {
+    async function addProductToStory(story_id, product_id) {
         const url = '/stories/' + story_id + '/product/' + product_id;
         loading.value = true;
         await axios.put(url)

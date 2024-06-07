@@ -8,7 +8,9 @@ import {useEpicGroupStore} from "@/store/epicgroup.js";
 import {useProductStore} from "@/store/products.js";
 
 import {sortDate, sortInt, sortNothing, sortString} from "@/components/common/sort.js";
-import {filter_field, filter_field_list} from "@/components/common/filter.js";
+import {filter_field, filter_simple_list, filter_field_list} from "@/components/common/filter.js";
+import SelectFieldValue from "@/components/backlog/SelectFieldValue.vue";
+
 
 const blStore = useBacklogStore();
 const personStore = usePersonStore();
@@ -74,7 +76,7 @@ const stories = computed(() => {
   return sort_stories(blStore.stories
       .filter(item => filter_field('period', item, unref(filterPeriod)))
       .filter(item => filter_field('priority', item, unref(filterPrio)))
-      .filter(item => filter_field_list('labels', item, unref(filterLabel))))
+      .filter(item => filter_simple_list('labels', item, unref(filterLabel))))
       .filter(item => filter_field_list('persons', item, unref(filterPerson)))
       .filter(item => filter_field_list('components', item, unref(filterComponent)))
       .filter(item => filter_field_list('epic_groups', item, unref(filterEpicGroup)))
@@ -119,113 +121,47 @@ const q = ref('');
 <template>
   <div class="backlog-container">
     <nav class="filter-container">
-      <span class="shortcut">Periodsplanering</span>
-      <el-select v-model="filterPeriod" placeholder="Välj period">
-        <el-option
-            key="period-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="period in blStore.periods"
-            :key="period ?? 'period-none'"
-            :label="period ?? 'Ej satt'"
-            :value="period ?? 'null'"/>
-      </el-select>
+      <SelectFieldValue
+          title-class="shortcut"
+          title="Periodsplanering"
+          :items="blStore.periods"
+          simple-list="true"
+          @selected="(value) => filterPeriod = value"/>
 
-      <span class="shortcut">Prioritet:</span>
-      <el-select v-model="filterPrio" placeholder="Välj prio">
-        <el-option
-            key="prio-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="prio in blStore.prios"
-            :key="prio ?? 'prio-none'"
-            :label="prio ?? 'Ej satt'"
-            :value="prio ?? 'null'"/>
-      </el-select>
+      <SelectFieldValue
+          title-class="shortcut"
+          title="Prioritet"
+          :items="blStore.prios"
+          simple-list="true"
+          @selected="(value) => filterPrio = value"/>
 
-      <span class="shortcut">Label:</span>
-      <el-select v-model="filterLabel" placeholder="Välj label">
-        <el-option
-            key="label-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="label in blStore.labels"
-            :key="label ?? 'label-none'"
-            :label="label ?? 'Ej satt'"
-            :value="label ?? 'null'"
-        />
-      </el-select>
-      Person:
-      <el-select v-model="filterPerson" placeholder="Välj person">
-        <el-option
-            key="person-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="person in personStore.persons"
-            :key="person.id"
-            :label="person.name"
-            :value="person.id"/>
-        <el-option
-            key="person-none"
-            label="Ej satt"
-            value="null"/>
-      </el-select>
+      <SelectFieldValue
+          title-class="shortcut"
+          title="Label"
+          :items="blStore.labels"
+          simple-list="true"
+          @selected="(value) => filterLabel = value"/>
 
-      Systemkomponent:
-      <el-select v-model="filterComponent" placeholder="Välj komponent">
-        <el-option
-            key="component-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="component of cStore.components"
-            :key="component.id"
-            :label="component.name"
-            :value="component.id"/>
-        <el-option
-            key="component-none"
-            label="Ej satt"
-            value="null"/>
-      </el-select>
+      <SelectFieldValue
+          title="Person"
+          :items="personStore.persons"
+          @selected="(value) => filterPerson = value"/>
 
-      Produkt:
-      <el-select v-model="filterProduct" placeholder="Välj produkt">
-        <el-option
-            key="product-all"
-            label="Alla"
-            value="all"
-        />
-        <el-option
-            v-for="product of productStore.products"
-            :key="product.id"
-            :label="product.name"
-            :value="product.id"
-        />
-        <el-option
-            key="product-none"
-            label="Ej satt"
-            value="null"/>
-      </el-select>
-      Övergripande epic:
-      <el-select v-model="filterEpicGroup" placeholder="Välj övergripnade epic">
-        <el-option
-            key="epicGroup-all"
-            label="Alla"
-            value="all"/>
-        <el-option
-            v-for="epicGroup of eStore.epicGroups"
-            :key="epicGroup.id"
-            :label="epicGroup.name"
-            :value="epicGroup.id"/>
-        <el-option
-            key="epicGroup-none"
-            label="Ej satt"
-            value="null"/>
-      </el-select>
+      <SelectFieldValue
+        title="Systemkomponent"
+        :items="cStore.components"
+        @selected="(value) => filterComponent = value"/>
+
+      <SelectFieldValue
+        title="Produkt"
+        :items="productStore.products"
+        @selected="(value) => filterProduct = value"/>
+
+      <SelectFieldValue
+        title="Övergripande epic"
+        :items="eStore.epicGroups"
+        @selected="(value) => filterEpicGroup = value"/>
+
       Sök:
       <el-input v-model="q" clearable style="max-width: 400px;"
                 placeholder="Sök på namn eller beskrivning"></el-input>
@@ -346,16 +282,6 @@ nav div a.sort-1:after {
   position: absolute;
 }
 
-.shortcut:before {
-  background-image: url("/Shortcut.svg");
-  background-size: 1rem 1rem;
-  width: 1rem;
-  height: 1rem;
-  background-repeat: no-repeat;
-  content: "";
-  display: inline-block;
-  margin-right: 0.2rem;
-}
 
 hr {
   grid-column-start: start;
@@ -394,7 +320,5 @@ footer div {
   grid-column: start / story;
 }
 
-.el-select {
-  padding-bottom: 0.8rem;
-}
+
 </style>

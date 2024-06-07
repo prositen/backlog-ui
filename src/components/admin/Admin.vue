@@ -117,9 +117,6 @@ h2 {
 }
 
 
-hr {
-  margin-bottom: 2rem;
-}
 
 div.admin hr {
   grid-column: header / end;

@@ -1,7 +1,7 @@
 <script setup>
 
 import {DeleteFilled, EditPen, InfoFilled} from "@element-plus/icons-vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 
 const props = defineProps({
   item: {},
@@ -16,7 +16,8 @@ const props = defineProps({
   }
 })
 
-const removeTitle = `Radera ${props.item[props.labelField]}? Fältet kommer tas bort från alla stories.`
+const removeTitle = computed(() => `Radera ${props.item[props.labelField]}? Fältet kommer tas bort från alla stories.`
+)
 
 async function editItem(fn, id, name) {
   if (name.length > 0) {
