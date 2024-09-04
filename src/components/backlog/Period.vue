@@ -5,9 +5,9 @@ const props = defineProps(['value'])
 
 const selectedPeriod = computed(() => {
   return {
-    "P1 2024": {name: "P1 2024", type: "danger"},
-    "P2 2024": {name: "P2 2024", type: "success"},
-    "P3 2024": {name: "P3 2024", type: "info"},
+    "P2 2024": {name: "P2 2024", type: "danger"},
+    "P3 2024": {name: "P3 2024", type: "success"},
+    "P1 2025": {name: "P1 2025", type: "info"},
     "Kanske nästa period": {name: "Nästa?", type: "info"},
     "Kanske efter nästa period": {name: "Efter nästa??", type: "info"}
   }[props.value] ?? {name: "", type: null}
