@@ -41,7 +41,7 @@ export const useComponentStore = defineStore('component', () => {
 
     async function updateComponent(id, name) {
         const url = '/components/' + id;
-        await axios.post(url,
+        await axios.put(url,
             {'id': id, 'name': name})
             .then((response) => {
                 componentMap.value.set(response.data.id, response.data);

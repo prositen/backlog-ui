@@ -42,7 +42,7 @@ export const usePersonStore = defineStore('person', () => {
 
     async function updatePerson(id, name) {
         const url = '/persons/' + id;
-        await axios.post(url,
+        await axios.put(url,
             {'id': id, 'name': name})
             .then((response) => {
                 personMap.value.set(response.data.id, response.data)

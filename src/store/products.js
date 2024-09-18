@@ -41,7 +41,7 @@ export const useProductStore = defineStore('product', () => {
 
     async function updateProduct(id, name) {
         const url = '/products/' + id;
-        await axios.post(url,
+        await axios.put(url,
             {'id': id, 'name': name})
             .then((response) => {
                 productMap.value.set(response.data.id, response.data);

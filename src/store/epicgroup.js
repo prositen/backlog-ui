@@ -41,7 +41,7 @@ export const useEpicGroupStore = defineStore('epicGroup', () => {
 
     async function updateEpicGroup(id, name) {
         const url = '/epic-groups/' + id;
-        await axios.post(url,
+        await axios.put(url,
             {'id': id, 'name': name})
             .then((response) => {
                 epicGroupMap.value.set(response.data.id, response.data)
